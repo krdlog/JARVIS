@@ -1,3 +1,4 @@
+from memory.memory_engine import MemoryEngine
 from voice.speaker import Speaker
 from voice.listener import Listener
 
@@ -11,6 +12,7 @@ class Jarvis:
 
     def __init__(self):
 
+        self.memory = MemoryEngine()
         self.speaker = Speaker()
         self.listener = Listener()
 
@@ -35,7 +37,6 @@ class Jarvis:
                 continue
 
             thought = self.brain.think(command)
-
             intent, data = self.processor.process(thought)
 
             if intent == "open_app":
@@ -46,6 +47,24 @@ class Jarvis:
                     self.speaker.speak(result)
                 else:
                     self.speaker.speak(f"I couldn't open {data}")
+
+            elif intent == "remember":
+
+                key = data["key"]
+                value = data["value"]
+
+                self.memory.remember(key, value)
+
+                self.speaker.speak(f"I'll remember that. {key} is {value}.")
+
+            elif intent == "recall":
+
+                value = self.memory.recall(data)
+
+                if value:
+                    self.speaker.speak(f"{data} is {value}.")
+                else:
+                    self.speaker.speak(f"I don't know what {data} is yet.")
 
             elif intent == "exit":
 
