@@ -16,9 +16,9 @@ class Listener:
             spinner=False,
             silero_sensitivity=0.4,
             webrtc_sensitivity=2,
-            post_speech_silence_duration=0.5,
-            min_length_of_recording=0.3,
-            min_gap_between_recordings=0.2
+            post_speech_silence_duration=0.6,
+            min_length_of_recording=0.4,
+            min_gap_between_recordings=0.5
         )
 
         print("[Whisper] Ready")
@@ -26,11 +26,22 @@ class Listener:
     def listen(self):
 
         while self.speaker.is_speaking:
-            time.sleep(0.1)
+            time.sleep(0.05)
+
+        time.sleep(0.4)
 
         print("🎤 Listening...")
 
         try:
+
+            if hasattr(self.recorder, "clear_audio_queue"):
+                self.recorder.clear_audio_queue()
+
+            elif hasattr(self.recorder, "clear_queue"):
+                self.recorder.clear_queue()
+
+            elif hasattr(self.recorder, "reset"):
+                self.recorder.reset()
 
             text = self.recorder.text()
 

@@ -4,6 +4,7 @@ import edge_tts
 import pygame
 import tempfile
 import os
+import time
 
 
 class Speaker:
@@ -13,7 +14,9 @@ class Speaker:
         pygame.mixer.init()
 
         self.voice = "en-US-AndrewMultilingualNeural"
+
         self.lock = Lock()
+
         self.is_speaking = False
 
     async def _tts(self, text, filename):
@@ -63,6 +66,8 @@ class Speaker:
                 print(f"TTS Error: {e}")
 
             finally:
+
+                time.sleep(0.8)
 
                 self.is_speaking = False
 

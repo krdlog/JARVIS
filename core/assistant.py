@@ -8,8 +8,12 @@ from skills.time_skill import TimeSkill
 from skills.screenshot import ScreenshotSkill
 from skills.folder_manager import FolderManager
 from skills.file_finder import FileFinder
+from skills.registry import SkillRegistry
 
 from ai.ai_engine import AIEngine
+from ai.conversation import Conversation
+from ai.planner import Planner
+from ai.tool_router import ToolRouter
 
 from core.brain import Brain
 from core.command_processor import CommandProcessor
@@ -29,6 +33,11 @@ class Jarvis:
         self.brain = Brain()
         self.processor = CommandProcessor()
 
+        self.ai = AIEngine()
+
+        self.conversation = Conversation()
+        self.planner = Planner()
+
         self.launcher = Launcher()
         self.search = SearchSkill()
         self.time = TimeSkill()
@@ -36,30 +45,77 @@ class Jarvis:
         self.folders = FolderManager()
         self.finder = FileFinder()
 
-        self.ai = AIEngine()
+        self.registry = SkillRegistry()
 
-        self.handlers = {
-            "open_app": self.handle_open_app,
-            "open_folder": self.handle_open_folder,
-            "create_folder": self.handle_create_folder,
-            "google_search": self.handle_google_search,
-            "youtube_search": self.handle_youtube_search,
-            "screenshot": self.handle_screenshot,
-            "time": self.handle_time,
-            "date": self.handle_date,
-            "remember": self.handle_remember,
-            "recall": self.handle_recall,
-            "exit": self.handle_exit,
-        }
+        self.router = ToolRouter(self.registry)
+
+        self.register_skills()
+
+    def register_skills(self):
+
+        self.registry.register(
+            "open_app",
+            self.handle_open_app
+        )
+
+        self.registry.register(
+            "open_folder",
+            self.handle_open_folder
+        )
+
+        self.registry.register(
+            "create_folder",
+            self.handle_create_folder
+        )
+
+        self.registry.register(
+            "google_search",
+            self.handle_google_search
+        )
+
+        self.registry.register(
+            "youtube_search",
+            self.handle_youtube_search
+        )
+
+        self.registry.register(
+            "screenshot",
+            self.handle_screenshot
+        )
+
+        self.registry.register(
+            "time",
+            self.handle_time
+        )
+
+        self.registry.register(
+            "date",
+            self.handle_date
+        )
+
+        self.registry.register(
+            "remember",
+            self.handle_remember
+        )
+
+        self.registry.register(
+            "recall",
+            self.handle_recall
+        )
+
+        self.registry.register(
+            "exit",
+            self.handle_exit
+        )
 
     def start(self):
 
         print("=" * 40)
-        print("JARVIS v0.4")
+        print("JARVIS v0.5")
         print("=" * 40)
 
         self.speaker.speak(
-            "Welcome back. All systems are operational."
+            "Welcome back. All systems are online."
         )
 
         while True:
@@ -69,20 +125,33 @@ class Jarvis:
             if not command:
                 continue
 
-            thought = self.brain.think(command)
+            self.conversation.add(
+                "user",
+                command
+            )
 
-            intent, data = self.processor.process(thought)
+            thought = self.planner.plan(command)
 
-            handler = self.handlers.get(intent)
+            intent, data = self.processor.process(
+                self.brain.think(thought)
+            )
 
-            if handler:
+            result = self.router.execute(
+                intent,
+                data
+            )
 
-                if handler(data):
-                    break
+            if result is True:
+                break
 
-            else:
+            if result is None:
 
                 reply = self.ai.ask(command)
+
+                self.conversation.add(
+                    "assistant",
+                    reply
+                )
 
                 self.speaker.speak(reply)
 
@@ -101,11 +170,15 @@ class Jarvis:
 
             os.startfile(folder)
 
-            self.speaker.speak(f"Opening {data}.")
+            self.speaker.speak(
+                f"Opening {data}."
+            )
 
             return
 
-        self.speaker.speak(f"I couldn't find {data}.")
+        self.speaker.speak(
+            f"I couldn't find {data}."
+        )
 
     def handle_open_folder(self, data):
 
@@ -117,31 +190,33 @@ class Jarvis:
 
         else:
 
-            self.speaker.speak(f"I couldn't open {data}.")
+            self.speaker.speak(
+                f"I couldn't open {data}."
+            )
 
     def handle_create_folder(self, data):
 
-        result = self.folders.create_folder(data)
-
-        self.speaker.speak(result)
+        self.speaker.speak(
+            self.folders.create_folder(data)
+        )
 
     def handle_google_search(self, data):
 
-        result = self.search.google(data)
-
-        self.speaker.speak(result)
+        self.speaker.speak(
+            self.search.google(data)
+        )
 
     def handle_youtube_search(self, data):
 
-        result = self.search.youtube(data)
-
-        self.speaker.speak(result)
+        self.speaker.speak(
+            self.search.youtube(data)
+        )
 
     def handle_screenshot(self, data):
 
-        result = self.screenshot.take()
-
-        self.speaker.speak(result)
+        self.speaker.speak(
+            self.screenshot.take()
+        )
 
     def handle_time(self, data):
 
@@ -185,7 +260,7 @@ class Jarvis:
     def handle_exit(self, data):
 
         self.speaker.speak(
-            "Shutting down. Until next time."
+            "Powering down. See you soon."
         )
 
         return True
