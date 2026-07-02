@@ -1,20 +1,27 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-
-# Virtual Environment
+# Virtual environment
 .venv/
 
+# Python
+__pycache__/
+*.pyc
+
 # Logs
-logs/
+*.log
+
+# Screenshots
+screenshots/
+
+# Temporary audio
+*.mp3
 
 # VS Code
 .vscode/
 
-# Database
-*.db
+# PyCharm
+.idea/
 
-# OS files
-Thumbs.db
-.DS_Store
+# Environment variables
+.env
+
+# Cache
+.cache/
